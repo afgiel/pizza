@@ -4,6 +4,7 @@ from constants import MODELS
 import featurizer
 from featurizer import SELECT_FUNCS, FEAT_FUNCS
 import argparse
+import json
 
 
 def get_args():
@@ -21,8 +22,12 @@ params = get_args()
 
 # load data into memory
 # TODO
-train_data = None
-test_data = None
+json_data = open('../data/train.json')
+train_data = json.load(json_data)
+json_data.close()
+json_data = open('../data/test.json')
+test_data = json.load(json_data)
+json_data.close()
 
 # intialize model
 model = pizza_model.PizzaModel(params)

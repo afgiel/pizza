@@ -8,7 +8,7 @@ FEAT_FUNCS = {
   'binary': Featurizer.binary_featurize 
 }
 
-def class Featurizer():
+class Featurizer():
 
   def __init__(self, params):
     self.params = params
