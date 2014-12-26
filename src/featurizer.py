@@ -57,18 +57,12 @@ class Featurizer():
     # instead of hard coding 
     # TODO add more features
     m = len(data)
-    n = 4 
+    n = 1 
     x = np.zeros((m, n))
     for i in range(len(data)):
-      post = data[i]
-      if "requester_flair_index" in post:
-        flair = post["requester_user_flair"] 
-        flair_index = utils.get_flair_index(flair) 
-      else:
-        flair_index = utils.get_flair_index(None)
+      post = data[i] 
       account_age_days = post["requester_account_age_in_days_at_request"] 
-      x[i][flair_index] = 1.
-      x[i][3] = account_age_days
+      x[i][0] = account_age_days
 
     return x
 
