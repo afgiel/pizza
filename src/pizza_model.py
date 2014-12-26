@@ -1,5 +1,6 @@
 from constants import MODELS
 import featurizer
+import utils
 
 
 class PizzaModel:
@@ -11,19 +12,19 @@ class PizzaModel:
 
 
   def train(self, train_data):
-    # initialize featurizer and select features
     f = featurizer.Featurizer(self.params)
+    print "SELECTING FEATURES"
     f.select_features(train_data)
-    # featurize
+    print "FEATURIZING TRAIN SET"
     x = f.featurize(train_data)
-    y = train_data.labels
-    # train
-    model.fit(x, y)
+    y = utils.get_labels_from_post_list(train_data) 
+    print "TRAINING MODEL"
+    self.model.fit(x, y)
     self.f = f
 
   def test(self, test_data):
-    # featurize
+    print "FEATURIZING TEST SET"
     x = self.f.featurize(test_data)
-    # predict
-    return model.predict(x)
+    print "PREDICTING"
+    return self.model.predict(x)
 
