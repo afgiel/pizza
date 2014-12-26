@@ -50,13 +50,36 @@ class Featurizer():
     return x
 
   # via http://cs.stanford.edu/~althoff/raop-dataset/altruistic_requests_icwsm.pdf
-  # features: gratitude [ ], reciprocity [ ], urgency [ ], status [ ] 
+  # features: gratitude [ ], reciprocity [ ], urgency [ ], status [ X ] 
   def stanford_featurize(self, data):  
-    print "stanford"
-    
+    # this could use some engineering to be cleaner 
+    # maybe generate some sort of from feature to index 
+    # instead of hard coding 
+    # TODO add more features
+    m = len(data)
+    n = 4 
+    x = np.zeros((m, n))
+    for i in range(len(data)):
+      post = data[i]
+      if "requester_flair_index" in post:
+        flair = post["requester_user_flair"] 
+        flair_index = utils.get_flair_index(flair) 
+      else:
+        flair_index = utils.get_flair_index(None)
+      account_age_days = post["requester_account_age_in_days_at_request"] 
+      x[i][flair_index] = 1.
+      x[i][3] = account_age_days
+
+    return x
 
   def time_featurize(self, data):
     print "time"
+
+
+  def binary_stanford_featurize(self, data):
+    binary = self.binary_featurize(data)
+    stanford = self.stanford_featurize(data)
+    return np.concatenate((binary, stanford), axis=1)
 
 ##########
 ## MAPS ## 
@@ -67,5 +90,6 @@ SELECT_FUNCS = {
 }
 
 FEAT_FUNCS = {
-  'binary': Featurizer.binary_featurize 
+  'binary': Featurizer.binary_featurize, 
+  'binary_stanford': Featurizer.binary_stanford_featurize
 }

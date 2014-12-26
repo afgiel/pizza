@@ -13,3 +13,9 @@ MODELS = {
   "m_nb": MultinomialNB,
   "b_nb": BernoulliNB
 }
+
+FLAIR_INDICES = {
+  None: 0,
+  "shroom": 1, 
+  "PIF": 2
+}

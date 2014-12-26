@@ -38,9 +38,8 @@ if params.TESTING:
   test_data = json.load(json_data)
   json_data.close()
 else: 
-  test_data = random.sample(train_data, int(len(train_data)*.9)) 
+  test_data = random.sample(train_data, int(len(train_data)*.1)) 
   train_data = [post for post in train_data if post not in test_data] 
-
 
 # intialize model
 model = pizza_model.PizzaModel(params)
@@ -51,11 +50,10 @@ model.train(train_data)
 # test 
 predictions = model.test(test_data)
 
-#evaluate
+# evaluate
 if not params.TESTING:
   desired = utils.get_labels_from_post_list(test_data)
   print classification_report(desired, predictions)
-
-
-# write output to file
-# TODO 
+else:
+  # write output to file
+  utils.write_output(test_data, predictions) 
