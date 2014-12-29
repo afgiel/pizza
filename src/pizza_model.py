@@ -1,6 +1,7 @@
 from constants import MODELS
 import featurizer
 import utils
+from sklearn.metrics import classification_report
 
 
 class PizzaModel:
@@ -21,6 +22,9 @@ class PizzaModel:
     print "TRAINING MODEL"
     self.model.fit(x, y)
     self.f = f
+    print "TRAINING CLASSIFICATION REPORT"
+    test_classification = self.model.predict(x)
+    print classification_report(test_classification, y)
 
   def test(self, test_data):
     print "FEATURIZING TEST SET"
