@@ -57,7 +57,7 @@ class Featurizer():
     # instead of hard coding 
     # TODO add more features
     m = len(data)
-    n = 6
+    n = 5
     x = np.zeros((m, n))
     for i in range(len(data)):
       post = data[i]
@@ -71,8 +71,11 @@ class Featurizer():
       ups_at_ret = post["number_of_upvotes_of_request_at_retrieval"]
       x[i][flair_index] = 1.
       x[i][3] = account_age_days
-      x[i][4] = req_since_first
-      x[i][5] = ups_at_ret
+      x[i][4] = post["number_of_upvotes_of_request_at_retrieval"]
+
+      # These aren't working very well
+      #x[i][4] = req_since_first
+      #x[i][5] = ups_at_ret
 
     return x
 
