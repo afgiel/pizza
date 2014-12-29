@@ -72,7 +72,7 @@ class Featurizer():
       x[i][flair_index] = 1.
       x[i][3] = account_age_days
       x[i][4] = req_since_first
-      x[i][5] = req_since_first
+      x[i][5] = ups_at_ret
 
     return x
 
