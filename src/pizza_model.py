@@ -9,7 +9,10 @@ class PizzaModel:
   def __init__(self, params):
     self.params = params
     # initialize the model with inverse regularization param C
-    self.model = MODELS[params.model](C=params.C)
+    if params.model == "log_res":
+      self.model = MODELS[params.model](C=params.C)
+    else:
+       self.model = MODELS[params.model]()
 
 
   def train(self, train_data):
