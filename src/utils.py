@@ -1,4 +1,5 @@
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 import constants
 
 def get_labels_from_post_list(post_list):
@@ -15,7 +16,14 @@ def get_labels_from_post_list(post_list):
 def tokenize(string):
   # can add more here
   # ngrams too
-  return word_tokenize(string) 
+  string = string.lower()
+  tokens = word_tokenize(string) 
+  to_remove = stopwords.words('english')
+  to_return = []
+  for token in tokens:
+    if token not in to_remove:
+      to_return.append(token)
+  return to_return
 
 def get_post_tokens(post):
   # get text  
