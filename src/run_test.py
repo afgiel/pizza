@@ -17,8 +17,9 @@ def get_args():
   parser.add_argument('-C', '-c', default=1.0, type=float)
   parser.add_argument('-selector', '-s', choices=SELECT_FUNCS.keys(), default='all', type=str)
   parser.add_argument('-featurizer', '-f', choices=FEAT_FUNCS.keys(), default='binary', type=str)
-  parser.add_argument('-num_body_tokens', '-nbt', default=5000, type=int)
-  parser.add_argument('-num_title_tokens', '-ntt', default=3000, type=int)
+  parser.add_argument('-num_body_tokens', '-nbt', default=1000, type=int)
+  parser.add_argument('-num_title_tokens', '-ntt', default=500, type=int)
+  parser.add_argument('-filter_num', '-fn', default=15, type=int)
   parser.add_argument('--TESTING', action='store_true', default=False)
   args = parser.parse_args()
   return args 
