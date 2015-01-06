@@ -1,6 +1,7 @@
 from constants import MODELS
 import featurizer
 import utils
+from sklearn.metrics import classification_report
 
 
 class PizzaModel:
@@ -8,7 +9,10 @@ class PizzaModel:
   def __init__(self, params):
     self.params = params
     # initialize the model with inverse regularization param C
-    self.model = MODELS[params.model](C=params.C)
+    if params.model == "log_res":
+      self.model = MODELS[params.model](C=params.C)
+    else:
+       self.model = MODELS[params.model]()
 
 
   def train(self, train_data):
@@ -21,6 +25,9 @@ class PizzaModel:
     print "TRAINING MODEL"
     self.model.fit(x, y)
     self.f = f
+    print "TRAINING CLASSIFICATION REPORT"
+    test_classification = self.model.predict(x)
+    print classification_report(test_classification, y)
 
   def test(self, test_data):
     print "FEATURIZING TEST SET"
