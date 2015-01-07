@@ -1,3 +1,5 @@
+from collections import Counter
+import math
 import numpy as np
 
 import utils
@@ -17,19 +19,122 @@ class Featurizer():
 # SELECT FUNCS #
 ################
 
+  def count(self, data):
+    print 'COUNTING POSTS'
+    body_word_count = {}
+    title_word_count = {}
+    body_doc_count = {}
+    title_doc_count = {}
+    labels = utils.get_labels_from_post_list(data)
+    all_body_tokens = set()
+    all_title_tokens = set()
+    for i in range(len(data)):
+      post = data[i]
+      label = labels[i]
+      body_tokens, title_tokens = utils.get_post_tokens(post)
+      for token in body_tokens:
+        if token not in body_word_count:
+          body_word_count[token] = Counter()
+        body_word_count[token][label] += 1
+        if label not in body_doc_count: 
+          body_doc_count[label] = Counter()
+        body_doc_count[label][token] += 1 
+        all_body_tokens.add(token)
+      for token in title_tokens:
+        if token not in title_word_count:
+          title_word_count[token] = Counter()
+        title_word_count[token][label] += 1
+        if label not in title_doc_count: 
+          title_doc_count[label] = Counter()
+        title_doc_count[label][token] += 1 
+        all_title_tokens.add(token)
+    self.body_word_count = body_word_count
+    self.title_word_count = title_word_count
+    self.body_doc_count = body_doc_count
+    self.title_doc_count = title_doc_count
+    self.all_body_tokens = [token for token in all_body_tokens if sum(body_word_count[token].values()) >= self.params.filter_num]
+    self.all_title_tokens = [token for token in all_title_tokens if sum(title_word_count[token].values()) >= self.params.filter_num]
+    return labels
+
+
+  def select_top_mi_ngrams(self, data):
+    # count 
+    labels = self.count(data)
+    body_mi = Counter() 
+    title_mi = Counter()
+    num_body_tokens = sum([sum(self.body_word_count[x].values()) for x in self.body_word_count])
+    for token in self.all_body_tokens:
+      body_mi[token] = self.compute_mi(token, self.body_word_count, self.body_doc_count, num_body_tokens, labels)
+    num_title_tokens = sum([sum(self.title_word_count[x].values()) for x in self.title_word_count]) 
+    for token in self.all_title_tokens:
+      title_mi[token] = self.compute_mi(token, self.title_word_count, self.title_doc_count, num_title_tokens, labels)  
+    top_body_tokens = body_mi.most_common(self.params.num_body_tokens)
+    top_title_tokens = title_mi.most_common(self.params.num_title_tokens)
+    print [word for word, mi in top_body_tokens[:10]]
+    print [word for word, mi in top_title_tokens[:10]]
+    self.ngram_body_features = {}
+    self.ngram_title_features = {}
+    index = 1
+    for token, count in top_body_tokens:
+      self.ngram_body_features[token] = index 
+      index += 1
+    for token, count in top_title_tokens:
+      self.ngram_title_features[token] = index
+      index += 1
+    self.num_ngram_features = index
+
+
+  def compute_mi(self, token, word_counts, doc_counts, num_tokens, labels): 
+    mi = 0.0
+    token_prob = float(sum(word_counts[token].values()))/num_tokens
+    num_docs = len(labels)
+    for c in [0, 1]: 
+      num_of_docs_with_label = len([x for x in labels if x == c])
+      class_prob = float(num_of_docs_with_label)/num_docs
+      num_of_docs_with_label_and_token = float(doc_counts[c][token]) 
+      pos_joint_prob = num_of_docs_with_label_and_token/num_docs 
+      pos_denom = class_prob*token_prob
+      neg_joint_prob = (num_of_docs_with_label - num_of_docs_with_label_and_token)/num_docs
+      neg_denom = class_prob*(1.0 - token_prob) 
+      if not pos_joint_prob <= 0.0:
+        mi += pos_joint_prob*math.log(pos_joint_prob/pos_denom)
+      if not neg_joint_prob <= 0.0:
+        mi += neg_joint_prob*math.log(neg_joint_prob/neg_denom)
+    return mi
+
+  def select_filter_ngrams(self, data):
+    # count 
+    labels = self.count(data)
+    index = 1
+    self.ngram_body_features = {}
+    self.ngram_title_features = {}
+    for token in self.all_body_tokens: 
+      self.ngram_body_features[token] = index 
+      index += 1
+    for token in self.all_title_tokens:
+      self.ngram_title_features[token] = index
+      index += 1 
+    self.num_ngram_features = index 
+
+
   def select_all_ngrams(self, data):
     # init fetures 
-    self.ngram_features = {}
+    self.ngram_body_features = {}
+    self.ngram_title_features = {}
     index = 1 
     for post in data:
       body_tokens, title_tokens = utils.get_post_tokens(post) 
-      all_tokens = body_tokens + title_tokens
       # select all
-      for token in all_tokens:
-        if token not in self.ngram_features:
-          self.ngram_features[token] = index
+      for token in body_tokens:
+        if token not in self.ngram_body_features:
+          self.ngram_body_features[token] = index
+          index += 1
+      for token in title_tokens:
+        if token not in self.ngram_title_features:
+          self.ngram_title_features[token] = index
           index += 1
     self.num_ngram_features = index
+  
 
 ##############
 # FEAT FUNCS #
@@ -42,10 +147,9 @@ class Featurizer():
     for i in range(len(data)):
       post = data[i]
       body_tokens, title_tokens = utils.get_post_tokens(post) 
-      all_tokens = body_tokens + title_tokens
-      for token in all_tokens:
-        if token in self.ngram_features:
-          j = self.ngram_features[token]
+      for token in body_tokens:
+        if token in self.ngram_body_features:
+          j = self.ngram_body_features[token]
           x[i][j] = 1.
     return x
 
@@ -93,7 +197,9 @@ class Featurizer():
 ##########
 
 SELECT_FUNCS = {
-  'all': Featurizer.select_all_ngrams
+  'all': Featurizer.select_all_ngrams,
+  'mi': Featurizer.select_top_mi_ngrams,
+  'filter': Featurizer.select_filter_ngrams
 }
 
 FEAT_FUNCS = {
