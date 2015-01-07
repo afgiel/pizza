@@ -2,6 +2,8 @@ import argparse
 import json
 import random
 from sklearn.metrics import classification_report
+from sklearn import cross_validation
+import numpy as np
 
 import constants
 from constants import MODELS
@@ -41,18 +43,29 @@ else:
   test_data = random.sample(train_data, int(len(train_data)*.1)) 
   train_data = [post for post in train_data if post not in test_data] 
 
+train_data = np.array(train_data)
 # intialize model
 model = pizza_model.PizzaModel(params)
 
 # train 
-model.train(train_data)
+#model.train(train_data)
 
 # test 
-predictions = model.test(test_data)
+#predictions = model.test(test_data)
+
+# K-fold testing
+kf = cross_validation.KFold(len(train_data), n_folds=10)
+predictions = np.zeros(len(train_data))
+for train_index, test_index in kf:
+  train_fold, test_fold = train_data[train_index], train_data[test_index]
+  model.train(train_fold)
+  predictions[test_index] = model.test(test_fold)
+
+desired = utils.get_labels_from_post_list(train_data)
 
 # evaluate
 if not params.TESTING:
-  desired = utils.get_labels_from_post_list(test_data)
+  #desired = utils.get_labels_from_post_list(test_data)
   print classification_report(desired, predictions)
 else:
   # write output to file
